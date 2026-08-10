@@ -1,0 +1,19 @@
+{
+  "name": "internsafe",
+  "private": true,
+  "scripts": {
+    "api:install": "npm install --prefix api",
+    "api:dev": "npm run dev --prefix api",
+    "api:deploy": "npm run deploy --prefix api",
+    "api:login": "npm exec --prefix api -- wrangler login",
+    "api:migrate": "npm run db:migrate --prefix api",
+    "api:migrate:local": "npm run db:migrate:local --prefix api",
+    "api:migrate:rollback": "npm run db:rollback:local --prefix api",
+    "wrangler": "npm exec --prefix api -- wrangler",
+    "ai:install": "powershell -ExecutionPolicy Bypass -File backend/scripts/install-venv.ps1",
+    "ai:fix-numpy": "powershell -ExecutionPolicy Bypass -File backend/scripts/fix-spacy.ps1",
+    "ai:dev": "powershell -Command \"$env:PYTHONPATH='.'; & backend/.venv/Scripts/python.exe -m uvicorn backend.main:app --reload --host 127.0.0.1 --port 8000\"",
+    "ai:worker": "powershell -Command \"$env:PYTHONPATH='.'; & backend/.venv/Scripts/celery.exe -A backend.ai.workers.celery_app worker --loglevel=info --pool=solo\"",
+    "setup:env": "powershell -ExecutionPolicy Bypass -File scripts/setup-env.ps1"
+  }
+}

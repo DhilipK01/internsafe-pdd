@@ -1,0 +1,26 @@
+# Render Blueprint — INTERNSAFE AI (free-tier friendly).
+services:
+  - type: web
+    name: internsafe-ai
+    runtime: python
+    plan: free
+    buildCommand: bash scripts/render-build.sh
+    startCommand: bash scripts/render-start.sh
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11.9"
+      - key: WORKER_BASE_URL
+        value: https://internsafe-api.dhilip17mk.workers.dev
+      - key: LLM_PROVIDER
+        value: none
+      - key: ENABLE_PADDLE_OCR
+        value: "false"
+      - key: ENABLE_TRANSFORMERS_NLP
+        value: "false"
+      - key: ENABLE_SENTENCE_EMBEDDINGS
+        value: "false"
+      - key: ENABLE_SPACY_NER
+        value: "true"
+      - key: AI_SERVICE_SECRET
+        sync: false

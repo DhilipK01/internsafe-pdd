@@ -1,0 +1,17 @@
+# Local Worker dev secrets (wrangler dev loads this file automatically).
+# Copy:  copy .dev.vars.example .dev.vars
+# Never commit .dev.vars
+
+# --- Cloudflare Worker → Python AI (FastAPI on your machine) ---
+AI_SERVICE_URL=http://127.0.0.1:8000
+AI_SERVICE_SECRET=internsafe-dev-ai-secret-change-me
+
+# --- Auth (must match a strong value in production via wrangler secret) ---
+JWT_SECRET=internsafe-dev-jwt-secret-change-me
+
+# --- Password reset emails (Resend: https://resend.com) ---
+RESEND_API_KEY=re_your_resend_api_key
+RESEND_FROM_EMAIL=INTERNSAFE AI <onboarding@resend.dev>
+
+# Optional: override public share host for local testing
+# SHARE_HOST=127.0.0.1:8787

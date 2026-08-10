@@ -1,0 +1,38 @@
+# INTERNSAFE AI Service — pinned for Windows (NumPy 1.x + spaCy 3.7)
+fastapi>=0.115.0,<0.137.0
+uvicorn[standard]>=0.32.0
+python-multipart>=0.0.12
+pydantic>=2.9.0,<3.0.0
+pydantic-settings>=2.6.0
+httpx>=0.27.0
+celery[redis]>=5.4.0,<6.0.0
+redis>=5.2.0,<7.0.0
+
+# OCR & document extraction
+paddleocr>=2.8.0
+paddlepaddle>=2.6.0
+pymupdf>=1.24.0
+pdfplumber>=0.11.0
+Pillow>=10.4.0
+# 4.13+ requires NumPy 2; keep on 4.10.x with NumPy 1.x
+opencv-python-headless>=4.10.0,<4.13.0
+numpy>=1.26.0,<2.0.0
+
+# NLP — spaCy 3.7 stack (do NOT pip install spacy without these pins)
+spacy==3.7.5
+thinc==8.2.5
+blis==0.7.11
+catalogue==2.0.10
+typer>=0.3.0,<0.10.0
+
+transformers>=4.46.0,<5.9.0
+torch>=2.5.0
+sentence-transformers>=3.3.0
+scikit-learn>=1.5.0,<1.9.0
+
+# LLM (recommendations only)
+openai>=1.54.0
+google-generativeai>=0.8.0
+
+python-dotenv>=1.0.0
+tenacity>=9.0.0

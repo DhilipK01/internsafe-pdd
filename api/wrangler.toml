@@ -1,0 +1,51 @@
+name = "internsafe-api"
+main = "src/index.ts"
+compatibility_date = "2024-12-01"
+account_id = "41951b2b93ed69c1e902e63e140388bb"
+
+# R2 (file storage for resume/offer AI) — required for production file analysis.
+# 1. Enable R2: https://dash.cloudflare.com → R2 → Enable R2
+# 2. npm run r2:create
+# 3. npm run deploy:r2   (uses wrangler.r2.toml with FILES binding)
+#
+# [[r2_buckets]]
+# binding = "FILES"
+# bucket_name = "internsafe-files"
+# preview_bucket_name = "internsafe-files-preview"
+
+[vars]
+# Public URLs (non-secret):
+#   API / share:  https://internsafe-api.dhilip17mk.workers.dev
+#   Health:       https://internsafe-api.dhilip17mk.workers.dev/health
+#
+# Secrets (production):  npx wrangler secret put JWT_SECRET
+#                        npx wrangler secret put AI_SERVICE_URL
+#                        npx wrangler secret put AI_SERVICE_SECRET
+# Local dev: copy api/.dev.vars.example → api/.dev.vars
+#
+# AI_SERVICE_URL examples:
+#   Local:        http://127.0.0.1:8000
+#   Tunnel:       https://your-subdomain.trycloudflare.com
+# AI_SERVICE_SECRET must match backend/.env AI_SERVICE_SECRET
+SHARE_HOST = "internsafe-api.dhilip17mk.workers.dev"
+# Comma-separated SHA-256 cert fingerprints for Android App Links (debug + release).
+# Run: cd api && npm run android:sha256
+ANDROID_SHA256_FINGERPRINTS = "15c83bf8d2d97b125ed8f7a01d99a7bb7d354a52efad7887230639eccbb5dc32"
+# Optional — required for iOS Universal Links
+APPLE_TEAM_ID = ""
+# Web OAuth client ID (same value as Flutter GOOGLE_WEB_CLIENT_ID)
+GOOGLE_WEB_CLIENT_ID = "707983796776-s06vl7k66hg39cf3kt460jpcotc09a02.apps.googleusercontent.com"
+GOOGLE_CLIENT_ID = "707983796776-s06vl7k66hg39cf3kt460jpcotc09a02.apps.googleusercontent.com"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "internsafe"
+database_id = "3e4ae864-9f9c-4e9f-8ebb-803ae1eefb2a"
+
+# Official logo PNG for share pages, OpenGraph, favicon-style requests
+[assets]
+directory = "./static"
+binding = "ASSETS"
+
+[env.production]
+vars = { ENVIRONMENT = "production" }

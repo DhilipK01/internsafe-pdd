@@ -1,0 +1,26 @@
+{
+  "name": "internsafe-api",
+  "private": true,
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "dev": "wrangler dev",
+    "setup:dev-vars": "node -e \"const fs=require('fs');const t='.dev.vars.example',d='.dev.vars';if(!fs.existsSync(d)){fs.copyFileSync(t,d);console.log('Created',d);}else console.log(d,'exists');\"",
+    "deploy": "wrangler deploy",
+    "deploy:r2": "wrangler deploy -c wrangler.r2.toml",
+    "r2:create": "wrangler r2 bucket create internsafe-files && wrangler r2 bucket create internsafe-files-preview",
+    "login": "wrangler login",
+    "db:migrate": "node scripts/migrate.mjs --remote",
+    "db:migrate:local": "node scripts/migrate.mjs --local",
+    "db:rollback:local": "node scripts/migrate.mjs --local --rollback 0002_indexes",
+    "db:rollback:remote": "node scripts/migrate.mjs --remote --rollback 0002_indexes",
+    "db:rollback:schema:local": "node scripts/migrate.mjs --local --rollback 0001_schema",
+    "android:sha256": "node scripts/print-android-sha256.mjs"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250109.0",
+    "typescript": "^5.7.3",
+    "wrangler": "3.114.17"
+  }
+}
