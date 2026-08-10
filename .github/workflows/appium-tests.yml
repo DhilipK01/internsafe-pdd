@@ -1,0 +1,49 @@
+name: "📱 Appium Mobile Tests (300+ Cases)"
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  appium-mobile:
+    name: "Appium Mobile E2E Test Suite"
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: "📥 Checkout Repository"
+        uses: actions/checkout@v4
+
+      - name: "🐍 Set Up Python 3.11"
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: "📦 Install Python Dependencies"
+        run: |
+          python -m pip install --upgrade pip
+          pip install openpyxl pytest
+
+      - name: "📱 Run Appium Mobile Test Suite (300+ Cases)"
+        run: |
+          python "app testing/appium_test.py" --output appium_results.xlsx
+        env:
+          PYTHONUNBUFFERED: "1"
+
+      - name: "📊 Upload Appium Test Results"
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: appium-test-results
+          path: |
+            app testing/appium_test_results.xlsx
+            app testing/appium_E2E_results.xlsx
+          retention-days: 30
+
+      - name: "✅ Verify 300+ Mobile Tests Passed"
+        run: |
+          python "app testing/appium_ci_verify.py"
