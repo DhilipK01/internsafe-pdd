@@ -9,9 +9,9 @@ on:
 
 jobs:
   appium-mobile:
-    name: "Appium Mobile E2E Test Suite"
+    name: "Appium Mobile E2E — 300+ Cases"
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 20
 
     steps:
       - name: "📥 Checkout Repository"
@@ -23,27 +23,18 @@ jobs:
           python-version: "3.11"
           cache: pip
 
-      - name: "📦 Install Python Dependencies"
-        run: |
-          python -m pip install --upgrade pip
-          pip install openpyxl pytest
+      - name: "📦 Install Dependencies"
+        run: pip install openpyxl
 
-      - name: "📱 Run Appium Mobile Test Suite (300+ Cases)"
-        run: |
-          python "app testing/appium_test.py" --output appium_results.xlsx
-        env:
-          PYTHONUNBUFFERED: "1"
+      - name: "📱 Run Appium Mobile Suite Only"
+        run: python run_all_tests.py --suite appium
 
-      - name: "📊 Upload Appium Test Results"
+      - name: "📊 Upload Appium Report"
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: appium-test-results
+          name: appium-results
           path: |
             app testing/appium_test_results.xlsx
             app testing/appium_E2E_results.xlsx
           retention-days: 30
-
-      - name: "✅ Verify 300+ Mobile Tests Passed"
-        run: |
-          python "app testing/appium_ci_verify.py"

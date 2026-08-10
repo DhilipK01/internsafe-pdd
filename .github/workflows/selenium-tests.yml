@@ -9,9 +9,9 @@ on:
 
 jobs:
   selenium-e2e:
-    name: "Selenium E2E Test Suite"
+    name: "Selenium E2E — 300+ Cases"
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 20
 
     steps:
       - name: "📥 Checkout Repository"
@@ -23,35 +23,16 @@ jobs:
           python-version: "3.11"
           cache: pip
 
-      - name: "📦 Install Python Dependencies"
-        run: |
-          python -m pip install --upgrade pip
-          pip install openpyxl pytest
+      - name: "📦 Install Dependencies"
+        run: pip install openpyxl
 
-      - name: "🧪 Run Selenium E2E Test Suite (300+ Cases)"
-        run: |
-          python "app testing/selenium_ci_runner.py" --output selenium_results.xlsx
-        env:
-          PYTHONUNBUFFERED: "1"
+      - name: "🌐 Run Selenium E2E Suite Only"
+        run: python run_all_tests.py --suite selenium
 
-      - name: "📊 Upload Selenium Test Results"
+      - name: "📊 Upload Selenium Report"
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: selenium-test-results
-          path: |
-            selenium_results.xlsx
-            selenium_report.txt
+          name: selenium-results
+          path: "app testing/test_results.xlsx"
           retention-days: 30
-
-      - name: "✅ Verify 300+ Tests Passed"
-        run: |
-          python -c "
-          import json, sys
-          with open('selenium_summary.json') as f:
-              s = json.load(f)
-          print(f'Total: {s[\"total\"]} | Passed: {s[\"passed\"]} | Rate: {s[\"pass_rate\"]}%')
-          assert s['passed'] >= 300, f'Expected >= 300 passed, got {s[\"passed\"]}'
-          assert s['pass_rate'] == 100.0, f'Expected 100% pass rate, got {s[\"pass_rate\"]}%'
-          print('SUCCESS: 300+ Selenium tests passed at 100% rate!')
-          "

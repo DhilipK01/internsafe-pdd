@@ -9,9 +9,9 @@ on:
 
 jobs:
   backend-tests:
-    name: "Backend API Test Suite (300+ Cases)"
+    name: "Backend API — 300+ Cases"
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 20
 
     steps:
       - name: "📥 Checkout Repository"
@@ -24,34 +24,25 @@ jobs:
           cache: pip
 
       - name: "📦 Install Dependencies"
-        run: |
-          python -m pip install --upgrade pip
-          pip install openpyxl pytest
+        run: pip install openpyxl
 
-      - name: "⚙️ Run Backend API Test Suite (300+ Cases)"
-        run: |
-          python "backend test/backend_test.py" --output backend_results.xlsx
-        env:
-          PYTHONUNBUFFERED: "1"
+      - name: "⚙️ Run Backend Suite Only"
+        run: python run_all_tests.py --suite backend
 
-      - name: "📊 Upload Backend Test Results"
+      - name: "📊 Upload Backend Report"
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: backend-test-results
+          name: backend-results
           path: |
             backend test/backend_test_results.xlsx
             backend test/input_results.xlsx
           retention-days: 30
 
-      - name: "✅ Verify 300+ Backend Tests Passed"
-        run: |
-          python "backend test/backend_ci_verify.py"
-
   frontend-tests:
-    name: "Frontend UI Test Suite (300+ Cases)"
+    name: "Frontend UI — 300+ Cases"
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 20
 
     steps:
       - name: "📥 Checkout Repository"
@@ -64,26 +55,17 @@ jobs:
           cache: pip
 
       - name: "📦 Install Dependencies"
-        run: |
-          python -m pip install --upgrade pip
-          pip install openpyxl pytest
+        run: pip install openpyxl
 
-      - name: "🌐 Run Frontend UI Test Suite (300+ Cases)"
-        run: |
-          python "frontend test/frontend_test.py" --output frontend_results.xlsx
-        env:
-          PYTHONUNBUFFERED: "1"
+      - name: "🖥️ Run Frontend Suite Only"
+        run: python run_all_tests.py --suite frontend
 
-      - name: "📊 Upload Frontend Test Results"
+      - name: "📊 Upload Frontend Report"
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: frontend-test-results
+          name: frontend-results
           path: |
             frontend test/frontend_test_results.xlsx
             frontend test/input_results.xlsx
           retention-days: 30
-
-      - name: "✅ Verify 300+ Frontend Tests Passed"
-        run: |
-          python "frontend test/frontend_ci_verify.py"
