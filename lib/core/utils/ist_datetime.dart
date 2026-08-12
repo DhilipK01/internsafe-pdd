@@ -2,7 +2,6 @@ import 'package:intl/intl.dart';
 
 /// Display timestamps in India Standard Time (Asia/Kolkata).
 class IstDateTime {
-  static const _ist = 'Asia/Kolkata';
 
   static DateTime? parseUtc(String? iso) {
     if (iso == null || iso.trim().isEmpty) return null;

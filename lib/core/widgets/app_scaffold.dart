@@ -2,11 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:internsfe/core/constants/app_spacing.dart';
 import 'package:internsfe/core/extensions/context_extensions.dart';
+import 'package:internsfe/core/layout/responsive_layout.dart';
+import 'package:internsfe/core/layout/web_scaffold.dart';
 import 'package:internsfe/core/routing/app_routes.dart';
 import 'package:internsfe/core/widgets/bottom_nav_bar.dart';
 import 'package:internsfe/core/widgets/custom_branded_appbar.dart';
 
-/// Shell for authenticated app screens with premium header and optional bottom nav.
+/// Shell for authenticated app screens.
+///
+/// On **desktop web** (kIsWeb + width ≥ 1024): renders inside [WebScaffold]
+/// (sidebar + top nav) — no bottom nav, no mobile app bar.
+///
+/// On **mobile / narrow web**: uses the original Scaffold with
+/// [CustomBrandedAppBar] and optional [AppBottomNavBar] (unchanged).
 class AppScaffold extends StatelessWidget {
   const AppScaffold({
     super.key,
@@ -39,8 +47,35 @@ class AppScaffold extends StatelessWidget {
 
   bool get _useBrand => showBrandHeader ?? showBottomNav;
 
+  // Derive the current route string from the bottom nav index for the sidebar.
+  String get _currentRoute => switch (bottomNavIndex) {
+        1 => AppRoutes.scan,
+        2 => AppRoutes.verify,
+        3 => AppRoutes.blacklist,
+        4 => AppRoutes.profile,
+        _ => AppRoutes.home,
+      };
+
   @override
   Widget build(BuildContext context) {
+    // ── Desktop Web Layout ──────────────────────────────────────────────────
+    if (ResponsiveLayout.isDesktopWeb(context)) {
+      final content = padding
+          ? Padding(
+              padding: const EdgeInsets.all(AppSpacing.xl),
+              child: body,
+            )
+          : body;
+
+      return WebScaffold(
+        currentRoute: _currentRoute,
+        actions: actions,
+        screenTitle: _useBrand ? null : title,
+        child: content,
+      );
+    }
+
+    // ── Mobile / Narrow Web Layout (unchanged) ──────────────────────────────
     final content = padding
         ? Padding(
             padding: const EdgeInsets.fromLTRB(
