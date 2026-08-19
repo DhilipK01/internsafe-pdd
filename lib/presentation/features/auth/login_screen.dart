@@ -393,11 +393,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           onPressed: _isLoading ? null : _submit,
           isLoading: _isLoading,
         ),
-        const SizedBox(height: AppSpacing.lg),
-        GoogleSignInButton(
-          isLoading: _isLoading,
-          onPressed: _isLoading ? null : _googleSignIn,
-        ),
+
       ],
     );
   }
