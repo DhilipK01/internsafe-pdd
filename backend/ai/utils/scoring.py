@@ -65,7 +65,12 @@ def classify_resume_document(text: str) -> tuple[bool, dict[str, bool], str]:
         "homework assignment", "assignment 1", "assignment 2", "submitted by",
         "question 1", "question 2", "q1.", "q2.", "table of contents",
         "proposed system flow", "functional specification",
-        "invoice", "receipt", "terms of service", "privacy policy", "bill of quantities"
+        "invoice", "receipt", "terms of service", "privacy policy", "bill of quantities",
+        "question paper", "exam paper", "assessment tool", "lab manual", "coursework",
+        "max marks", "max. marks", "time allowed", "subject code", "course code",
+        "programming in java", "programming in c", "programming in python", "programming in c++",
+        "data structures and", "computer networks", "database management",
+        "answer all questions", "answer any five", "multiple choice", "section a", "section b"
     ]
     non_resume_hits = [m for m in non_resume_markers if m in lower]
 
@@ -89,15 +94,19 @@ def classify_resume_document(text: str) -> tuple[bool, dict[str, bool], str]:
     has_cv_title = any(w in lower for w in ["resume", "curriculum vitae", "cv", "curriculum-vitae"])
 
     # Classification decision:
-    # 1. If 2 or more core resume sections are present (or explicit CV title), it is a VALID RESUME!
-    if (core_section_count >= 2 or has_cv_title) and len(non_resume_hits) == 0:
-        return True, section_checks, "Valid resume structure detected."
-
-    # 2. If strong non-resume markers are found and core resume structure is weak (< 3 sections), flag as non-resume
-    if len(non_resume_hits) >= 1 and core_section_count < 3 and not has_cv_title:
+    # 1. If explicit non-resume markers hit (and no explicit CV title), flag as non-resume document
+    if len(non_resume_hits) >= 1 and not has_cv_title:
         return False, section_checks, f"Document identified as non-resume document type ({', '.join(non_resume_hits[:2])})."
 
-    # 3. If core sections are fewer than 2 and no CV title, flag as non-resume
+    # 2. If no candidate contact info (email/phone) and no CV title, flag as non-resume document
+    if not has_contact and core_section_count < 3 and not has_cv_title:
+        return False, section_checks, "Document lacks candidate contact information (email or phone number) and valid resume structure."
+
+    # 3. If 2 or more core resume sections are present (or explicit CV title), it is a VALID RESUME!
+    if (core_section_count >= 2 or has_cv_title):
+        return True, section_checks, "Valid resume structure detected."
+
+    # 4. If core sections are fewer than 2 and no CV title, flag as non-resume
     if core_section_count < 2 and not has_cv_title:
         return False, section_checks, "Document lacks core resume sections (Education, Work Experience, Skills, or Projects)."
 
