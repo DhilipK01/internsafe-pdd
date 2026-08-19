@@ -17,7 +17,7 @@ def run_resume_pipeline(
     ocr = extract_from_file(file_bytes, mime_type, file_name)
     text = ocr.text
 
-    analysis = analyze_resume_text(text, ocr_confidence=ocr.confidence)
+    analysis = analyze_resume_text(text, ocr_confidence=ocr.confidence, file_name=file_name)
     if analysis.get("status") == "insufficient_evidence":
         return {
             **analysis,

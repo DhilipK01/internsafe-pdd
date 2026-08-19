@@ -47,14 +47,24 @@ def aggregate_risk(findings: list[dict]) -> tuple[int, RiskLevel, float]:
     return score, level, min(1.0, confidence)
 
 
-def classify_resume_document(text: str) -> tuple[bool, dict[str, bool], str]:
+def classify_resume_document(text: str, file_name: str = "") -> tuple[bool, dict[str, bool], str]:
     """
     Evaluates whether text is a valid Resume/CV vs non-resume (assignment, meeting notes, business doc, essay).
     Returns (is_resume, section_checks, reasoning).
     """
     import re
     lower = text.lower()
+    fn_lower = file_name.lower()
     
+    # Filename non-resume indicators
+    fn_non_resume_markers = [
+        "assesment", "assessment", "assignment", "homework", "question", "quiz", "exam", "test",
+        "syllabus", "rubric", "timetable", "admitcard", "hallticket", "coursework", "labmanual",
+        "co1", "co2", "co3", "co4", "co5", "unit1", "unit2", "unit3", "unit4", "unit5",
+        "module1", "module2", "module3", "chapter", "lecture", "slide", "ppt"
+    ]
+    fn_hits = [m for m in fn_non_resume_markers if m in fn_lower]
+
     # Explicit non-resume document indicators (must be specific multi-word terms)
     non_resume_markers = [
         "statement of marks", "grade card", "mark sheet", "academic transcript", "transcript of records",
@@ -66,11 +76,12 @@ def classify_resume_document(text: str) -> tuple[bool, dict[str, bool], str]:
         "question 1", "question 2", "q1.", "q2.", "table of contents",
         "proposed system flow", "functional specification",
         "invoice", "receipt", "terms of service", "privacy policy", "bill of quantities",
-        "question paper", "exam paper", "assessment tool", "lab manual", "coursework",
+        "question paper", "exam paper", "assessment tool", "assessment", "assesment", "lab manual", "coursework",
         "max marks", "max. marks", "time allowed", "subject code", "course code",
         "programming in java", "programming in c", "programming in python", "programming in c++",
         "data structures and", "computer networks", "database management",
-        "answer all questions", "answer any five", "multiple choice", "section a", "section b"
+        "answer all questions", "answer any five", "multiple choice", "section a", "section b",
+        "course outcome", "program outcome", "blooms taxonomy", "cognitive level"
     ]
     non_resume_hits = [m for m in non_resume_markers if m in lower]
 
@@ -94,6 +105,10 @@ def classify_resume_document(text: str) -> tuple[bool, dict[str, bool], str]:
     has_cv_title = any(w in lower for w in ["resume", "curriculum vitae", "cv", "curriculum-vitae"])
 
     # Classification decision:
+    # 0. Check filename markers
+    if fn_hits and not has_cv_title:
+        return False, section_checks, f"File name indicates an academic or non-resume document type ({fn_hits[0]})."
+
     # 1. If explicit non-resume markers hit (and no explicit CV title), flag as non-resume document
     if len(non_resume_hits) >= 1 and not has_cv_title:
         return False, section_checks, f"Document identified as non-resume document type ({', '.join(non_resume_hits[:2])})."

@@ -13,7 +13,7 @@ from backend.ai.utils.text_normalize import normalize_text
 from backend.config import get_settings
 
 
-def analyze_resume_text(text: str, ocr_confidence: float = 1.0) -> dict[str, Any]:
+def analyze_resume_text(text: str, ocr_confidence: float = 1.0, file_name: str = "") -> dict[str, Any]:
     settings = get_settings()
     normalized = normalize_text(text)
 
@@ -35,7 +35,7 @@ def analyze_resume_text(text: str, ocr_confidence: float = 1.0) -> dict[str, Any
         }
 
     # Document Classification Check (Resume vs Non-Resume Document)
-    is_res, section_checks, reasoning = classify_resume_document(normalized)
+    is_res, section_checks, reasoning = classify_resume_document(normalized, file_name=file_name)
     if not is_res:
         return {
             "is_resume": False,
