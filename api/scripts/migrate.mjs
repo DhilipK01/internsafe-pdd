@@ -71,11 +71,21 @@ function versionFromFile(file) {
 function splitStatements(sql) {
   const statements = [];
   let buf = '';
+  let inTrigger = false;
   for (const line of sql.split('\n')) {
     const trimmed = line.trim();
     if (trimmed.startsWith('--')) continue;
     buf += `${line}\n`;
-    if (trimmed.endsWith(';')) {
+    if (trimmed.toUpperCase().includes('CREATE TRIGGER')) {
+      inTrigger = true;
+    }
+    if (inTrigger) {
+      if (trimmed.toUpperCase() === 'END;') {
+        statements.push(buf.trim());
+        buf = '';
+        inTrigger = false;
+      }
+    } else if (trimmed.endsWith(';')) {
       const stmt = buf.trim();
       if (stmt && stmt !== ';') statements.push(stmt);
       buf = '';

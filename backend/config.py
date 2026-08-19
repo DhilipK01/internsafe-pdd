@@ -44,7 +44,7 @@ class Settings(BaseSettings):
 
     # Worker callback (Cloudflare API)
     worker_base_url: str = "http://127.0.0.1:8787"
-    ai_service_secret: str = "change-me-in-production"
+    ai_service_secret: str = "internsafe-dev-ai-secret-change-me"
 
     # Redis / Celery
     redis_url: str = "redis://localhost:6379/0"

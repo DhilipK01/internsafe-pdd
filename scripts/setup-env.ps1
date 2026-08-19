@@ -21,6 +21,6 @@ Copy-IfMissing (Join-Path $root "api\.dev.vars.example") (Join-Path $root "api\.
 Write-Host ""
 Write-Host "Next steps:" -ForegroundColor Cyan
 Write-Host '  1. Edit backend\.env - set AI_SERVICE_SECRET (same value as api\.dev.vars and wrangler secrets)'
-Write-Host "  2. Edit api\.dev.vars — AI_SERVICE_URL=http://127.0.0.1:8000 for local AI"
+Write-Host "  2. Edit api\.dev.vars - AI_SERVICE_URL=http://127.0.0.1:8000 for local AI"
 Write-Host "  3. Production: npx wrangler secret put AI_SERVICE_URL / AI_SERVICE_SECRET (in api/)"
 Write-Host "  4. See ENVIRONMENT.md for full URL reference"

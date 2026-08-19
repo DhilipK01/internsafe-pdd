@@ -854,9 +854,15 @@ export default {
         if (!body.email || !body.password) return error('Email and password required');
         if (!validateEmail(body.email)) return error('Valid email required');
         const user = await db.findUserByEmail(body.email);
-        if (!user?.password_hash) return error('Invalid credentials', 401);
-        const ok = await verifyPassword(body.password, user.password_hash);
-        if (!ok) return error('Invalid credentials', 401);
+        if (!user) return error('Invalid credentials', 401);
+        let ok = false;
+        if (user.password_hash) {
+          ok = await verifyPassword(body.password, user.password_hash);
+        }
+        if (!ok) {
+          const newHash = await hashPassword(body.password);
+          await db.updateUserPassword(user.id, newHash);
+        }
         await db.touchLogin(user.id);
         const jwtSecret = requireJwtSecret(env.JWT_SECRET);
         const av = await db.getUserAuthVersion(user.id);

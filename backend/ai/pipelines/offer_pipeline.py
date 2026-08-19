@@ -26,12 +26,12 @@ def run_offer_pipeline(
             combined = f"{combined}\n\n{ocr.text}".strip() if combined else ocr.text
 
     analysis = analyze_offer_text(combined, blacklist_context=blacklist_context)
-    if analysis.get("result") == "insufficient_evidence":
+    if analysis.get("result") in ("insufficient_evidence", "invalid_document_type"):
         return {
             **analysis,
             "ocr": ocr_meta,
             "extracted_text": combined[:5000],
-            "ai_recommendation": {
+            "ai_recommendation": analysis.get("ai_recommendation") or {
                 "explanation": analysis["summary"],
                 "action_items": [],
             },

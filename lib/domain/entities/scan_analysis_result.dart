@@ -38,6 +38,11 @@ class ScanFinding extends Equatable {
 class ScanAnalysisResult extends Equatable {
   const ScanAnalysisResult({
     this.safetyScore,
+    this.qualityScore,
+    this.isResume,
+    this.status,
+    this.message,
+    this.sectionChecks,
     required this.riskLevel,
     required this.findings,
     required this.explanation,
@@ -46,6 +51,11 @@ class ScanAnalysisResult extends Equatable {
   });
 
   final int? safetyScore;
+  final int? qualityScore;
+  final bool? isResume;
+  final String? status;
+  final String? message;
+  final Map<String, bool>? sectionChecks;
   final RiskLevel riskLevel;
   final List<ScanFinding> findings;
   final String explanation;
@@ -84,9 +94,20 @@ class ScanAnalysisResult extends Equatable {
           [];
     }
 
+    Map<String, bool>? sectionChecks;
+    final sc = map['section_checks'];
+    if (sc is Map) {
+      sectionChecks = sc.map((k, v) => MapEntry(k.toString(), v == true));
+    }
+
     final riskStr = map['risk_level'] as String? ?? 'unknown';
     return ScanAnalysisResult(
       safetyScore: map['safety_score'] as int?,
+      qualityScore: map['quality_score'] as int?,
+      isResume: map['is_resume'] as bool?,
+      status: map['status'] as String?,
+      message: map['message'] as String?,
+      sectionChecks: sectionChecks,
       riskLevel: _mapRisk(riskStr),
       findings: findings,
       explanation: explanation,
@@ -110,6 +131,16 @@ class ScanAnalysisResult extends Equatable {
   }
 
   @override
-  List<Object?> get props =>
-      [safetyScore, riskLevel, findings, explanation, ocrConfidence];
+  List<Object?> get props => [
+        safetyScore,
+        qualityScore,
+        isResume,
+        status,
+        message,
+        sectionChecks,
+        riskLevel,
+        findings,
+        explanation,
+        ocrConfidence
+      ];
 }

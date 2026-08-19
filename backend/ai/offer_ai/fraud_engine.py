@@ -7,6 +7,7 @@ from typing import Any
 from backend.ai.offer_ai.fraud_risk_aggregator import aggregate_offer_fraud
 from backend.ai.offer_ai.nlp_classifier import classify_offer_text
 from backend.ai.offer_ai.rules_engine import analyze_rules
+from backend.ai.utils.scoring import classify_offer_document
 from backend.ai.utils.text_normalize import normalize_text, truncate
 
 
@@ -29,6 +30,33 @@ def analyze_offer_text(
             "scam_patterns": [],
             "summary": "Insufficient evidence for reliable analysis.",
             "message": "Insufficient evidence for reliable analysis.",
+        }
+
+    is_offer, offer_checks, reasoning = classify_offer_document(normalized)
+    if not is_offer:
+        return {
+            "result": "invalid_document_type",
+            "status": "invalid_document_type",
+            "is_offer": False,
+            "risk_level": "unknown",
+            "verdict": "invalid_document_type",
+            "verdict_label": "Invalid Document Type",
+            "danger_score": 0,
+            "confidence_score": 0,
+            "reasons": [reasoning],
+            "rule_findings": [],
+            "nlp_findings": [],
+            "scam_patterns": [],
+            "offer_checks": offer_checks,
+            "summary": f"Uploaded document is not an Offer Letter/Appointment Letter. {reasoning}",
+            "message": f"Uploaded document is not an Offer Letter/Appointment Letter. {reasoning}",
+            "ai_recommendation": {
+                "explanation": f"The uploaded file was recognized as a non-offer document type. {reasoning}",
+                "action_items": [
+                    "Please upload a valid internship or job offer letter (PDF, Image, or DOCX).",
+                    "Do not upload resumes, college assignments, mark sheets, or general notes into the offer fraud detector."
+                ],
+            },
         }
 
     rule_findings = analyze_rules(normalized)

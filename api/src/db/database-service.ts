@@ -133,13 +133,25 @@ export class DatabaseService {
     );
   }
 
-  async getUserAuthVersion(userId: string): Promise<number> {
-    const row = await this.db.first<{ auth_version: number }>(
+  async updateUserPassword(id: string, passwordHash: string): Promise<void> {
+    await this.db.run(
       this.db
-        .prepare(`SELECT COALESCE(auth_version, 0) AS auth_version FROM users WHERE id = ?`)
-        .bind(userId),
+        .prepare(`UPDATE users SET password_hash = ?, updated_at = datetime('now') WHERE id = ?`)
+        .bind(passwordHash, id),
     );
-    return row?.auth_version ?? 0;
+  }
+
+  async getUserAuthVersion(userId: string): Promise<number> {
+    try {
+      const row = await this.db.first<{ auth_version: number }>(
+        this.db
+          .prepare(`SELECT COALESCE(auth_version, 0) AS auth_version FROM users WHERE id = ?`)
+          .bind(userId),
+      );
+      return row?.auth_version ?? 0;
+    } catch {
+      return 0;
+    }
   }
 
   async updateUserPassword(userId: string, passwordHash: string): Promise<void> {

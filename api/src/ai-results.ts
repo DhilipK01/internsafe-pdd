@@ -2,7 +2,11 @@ import { DatabaseService } from './db/database-service';
 import { uuid } from './utils';
 
 export type ResumeAiResult = {
+  is_resume?: boolean;
+  status?: string;
+  message?: string;
   safety_score?: number | null;
+  quality_score?: number;
   risk_level?: string;
   findings?: Array<{
     finding_type: string;
@@ -10,6 +14,7 @@ export type ResumeAiResult = {
     risk_level: string;
     recommendation?: string;
   }>;
+  section_checks?: Record<string, boolean>;
   extracted_text?: string;
   ai_recommendation?: { explanation?: string; action_items?: string[] };
   ocr?: { confidence?: number };
@@ -18,11 +23,14 @@ export type ResumeAiResult = {
 
 export type OfferAiResult = {
   result?: string;
+  status?: string;
+  is_offer?: boolean;
   risk_level?: string;
   confidence_score?: number;
   summary?: string;
   reasons_json?: string;
   extracted_text?: string;
+  offer_checks?: Record<string, boolean>;
   ai_recommendation?: { explanation?: string; action_items?: string[] };
   embedding?: number[] | null;
 };
@@ -43,10 +51,15 @@ export async function applyResumeAiResult(
     recommendation: f.recommendation,
   }));
 
+  const status = result.status ?? 'completed';
   const resultPayload = {
-    status: 'completed',
+    status,
+    is_resume: result.is_resume ?? true,
     safety_score: result.safety_score,
+    quality_score: result.quality_score ?? 0,
     risk_level: result.risk_level ?? 'unknown',
+    section_checks: result.section_checks ?? {},
+    message: result.message,
     findings,
     ai_recommendation: result.ai_recommendation,
     ocr_confidence: result.ocr?.confidence,
@@ -88,11 +101,12 @@ export async function applyOfferAiResult(
   params: { offerCheckId: string; userId: string },
   result: OfferAiResult,
 ): Promise<void> {
+  const status = result.status ?? (result.result === 'invalid_document_type' ? 'invalid_document_type' : 'completed');
   await db.completeOfferAnalysis({
     offerCheckId: params.offerCheckId,
     userId: params.userId,
     result: result.result ?? 'suspicious',
-    status: 'completed',
+    status,
     riskLevel: result.risk_level ?? 'unknown',
     confidenceScore: result.confidence_score ?? null,
     summary: result.summary ?? '',

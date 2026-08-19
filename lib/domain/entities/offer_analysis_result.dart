@@ -29,7 +29,9 @@ class OfferAnalysisResult extends Equatable {
       riskLevel == RiskLevel.danger;
 
   static OfferAnalysisResult? fromOfferRow(Map<String, dynamic> row) {
-    if (row['status'] != 'completed') return null;
+    final status = row['status'] as String? ?? '';
+    final res = row['result'] as String? ?? '';
+    if (status != 'completed' && status != 'invalid_document_type' && res != 'invalid_document_type') return null;
 
     final riskStr = row['risk_level'] as String? ?? 'unknown';
     final confidence = row['confidence_score'] as int? ?? 0;

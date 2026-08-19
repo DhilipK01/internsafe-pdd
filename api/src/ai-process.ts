@@ -28,10 +28,15 @@ function buildResumeResultPayload(result: ResumeAiResult): string {
     risk_level: f.risk_level,
     recommendation: f.recommendation,
   }));
+  const status = result.status ?? 'completed';
   return JSON.stringify({
-    status: 'completed',
+    status,
+    is_resume: result.is_resume ?? true,
     safety_score: result.safety_score,
+    quality_score: result.quality_score ?? 0,
     risk_level: result.risk_level ?? 'unknown',
+    section_checks: result.section_checks ?? {},
+    message: result.message,
     findings,
     ai_recommendation: result.ai_recommendation,
     ocr_confidence: result.ocr?.confidence,
@@ -127,7 +132,7 @@ export async function processOfferWithAi(
     const result = sync.result as OfferAiResult;
     await applyOfferAiResult(db, params, result);
     return {
-      status: 'completed',
+      status: (result.result === 'invalid_document_type' || result.status === 'invalid_document_type') ? 'invalid_document_type' : 'completed',
       message: result.summary ?? 'Analysis complete.',
     };
   }

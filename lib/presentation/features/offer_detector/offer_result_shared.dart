@@ -52,7 +52,7 @@ class _OfferResultBodyState extends ConsumerState<OfferResultBody> {
       await pollUntilDone<Map<String, dynamic>>(
         fetch: () => ref.read(offerRepositoryProvider).getOfferCheck(id),
         isDone: (row) =>
-            row['status'] == 'completed' || row['status'] == 'failed',
+            row['status'] == 'completed' || row['status'] == 'failed' || row['status'] == 'invalid_document_type',
       );
       await _loadOffer(id);
     } finally {
@@ -96,7 +96,48 @@ class _OfferResultBodyState extends ConsumerState<OfferResultBody> {
                   ? job.message
                   : _statusMessage ?? 'Awaiting analysis.',
             ),
-          if (analysis != null) ...[
+          if (analysis != null && analysis.result == 'invalid_document_type') ...[
+            Card(
+              color: theme.colorScheme.errorContainer,
+              child: Padding(
+                padding: const EdgeInsets.all(AppSpacing.lg),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(
+                      LucideIcons.alertTriangle,
+                      size: 32,
+                      color: theme.colorScheme.onErrorContainer,
+                    ),
+                    const SizedBox(width: AppSpacing.md),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Invalid Document Type',
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              color: theme.colorScheme.onErrorContainer,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: AppSpacing.xs),
+                          Text(
+                            analysis.summary.isNotEmpty
+                                ? analysis.summary
+                                : 'Uploaded document is not an Offer Letter or Appointment Letter.',
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: theme.colorScheme.onErrorContainer,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ] else if (analysis != null) ...[
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(AppSpacing.lg),

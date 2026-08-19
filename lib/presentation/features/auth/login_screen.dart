@@ -68,14 +68,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           throw ApiException('Name is required');
         }
         await ref.read(authRepositoryProvider).signUpWithEmail(
-              _emailController.text,
-              _passwordController.text,
-              _nameController.text,
+              _emailController.text.trim(),
+              _passwordController.text.trim(),
+              _nameController.text.trim(),
             );
       } else {
         await ref.read(authRepositoryProvider).signInWithEmail(
-              _emailController.text,
-              _passwordController.text,
+              _emailController.text.trim(),
+              _passwordController.text.trim(),
             );
       }
       if (mounted) {

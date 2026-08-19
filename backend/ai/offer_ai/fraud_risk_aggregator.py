@@ -93,18 +93,24 @@ def _fraud_confidence(
     finding_count: int,
     pattern_count: int,
 ) -> int:
-    """Certainty that scam/risk indicators are present — NOT genuineness."""
+    """Calculates overall confidence (0-100%) in the verdict."""
+    if danger_score == 0 and finding_count == 0:
+        return 95  # Clean document with zero scam findings is 95% confident genuine
+
+    if danger_score < 18:
+        return max(85, 95 - danger_score)  # High confidence in low risk verdict
+
     if danger_score >= 70:
-        base = 82
+        base = 85
     elif danger_score >= 45:
-        base = 72
+        base = 75
     elif danger_score >= 25:
-        base = 60
+        base = 65
     else:
-        base = 45
-    base += min(12, finding_count * 2)
-    base += min(8, pattern_count * 4)
-    return max(15, min(97, base))
+        base = 55
+    base += min(10, finding_count * 2)
+    base += min(5, pattern_count * 3)
+    return max(30, min(98, base))
 
 
 def _build_strict_explanation(
