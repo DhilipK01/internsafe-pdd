@@ -381,19 +381,16 @@ export async function buildShareSnapshot(
       const scanId = r.id as string;
       const dbFindings = await db.getScanFindingsForScan(userId, scanId);
       if (dbFindings.length > 0 && !(analysis.findings as unknown[])?.length) {
-        analysis = {
-          ...analysis,
-          findings: dbFindings.map((f) => {
-            const row = f as Record<string, unknown>;
-            return {
-              type: row.finding_type,
-              message: row.finding_value,
-              severity: row.risk_level,
-              recommendation: row.recommendation,
-            };
-          }),
-          findingCount: dbFindings.length,
-        };
+        (analysis as Record<string, unknown>).findings = dbFindings.map((f) => {
+          const row = f as Record<string, unknown>;
+          return {
+            type: row.finding_type,
+            message: row.finding_value,
+            severity: row.risk_level,
+            recommendation: row.recommendation,
+          };
+        });
+        (analysis as Record<string, unknown>).findingCount = dbFindings.length;
       }
       let fileId: string | null = null;
       const resumeId = r.resume_id as string | undefined;

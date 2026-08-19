@@ -7,8 +7,8 @@ export class DbClient {
     return this.db.prepare(sql);
   }
 
-  async run(statement: D1PreparedStatement): Promise<void> {
-    await statement.run();
+  async run(statement: D1PreparedStatement) {
+    return await statement.run();
   }
 
   async first<T>(statement: D1PreparedStatement): Promise<T | null> {

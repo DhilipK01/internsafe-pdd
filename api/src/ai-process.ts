@@ -16,7 +16,7 @@ import {
 import { uuid } from './utils';
 
 export type AiProcessOutcome = {
-  status: 'completed' | 'processing' | 'pending_analysis' | 'failed';
+  status: 'completed' | 'processing' | 'pending_analysis' | 'failed' | 'invalid_document_type';
   message: string;
   resultJson?: string;
 };

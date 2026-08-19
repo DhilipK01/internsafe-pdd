@@ -133,13 +133,6 @@ export class DatabaseService {
     );
   }
 
-  async updateUserPassword(id: string, passwordHash: string): Promise<void> {
-    await this.db.run(
-      this.db
-        .prepare(`UPDATE users SET password_hash = ?, updated_at = datetime('now') WHERE id = ?`)
-        .bind(passwordHash, id),
-    );
-  }
 
   async getUserAuthVersion(userId: string): Promise<number> {
     try {
@@ -576,10 +569,12 @@ export class DatabaseService {
       file_name: string;
       original_name: string;
       upload_type: string;
+      created_at: string;
+      updated_at: string;
     }>(
       this.db
         .prepare(
-          `SELECT id, r2_key, mime_type, file_name, original_name, upload_type
+          `SELECT id, r2_key, mime_type, file_name, original_name, upload_type, created_at, updated_at
            FROM uploaded_files WHERE id = ? AND user_id = ? AND deleted_at IS NULL`,
         )
         .bind(fileId, userId),
