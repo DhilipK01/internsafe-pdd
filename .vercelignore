@@ -1,0 +1,9 @@
+# Ignore backend & API directories for Vercel static hosting
+api/
+backend/
+android/
+ios/
+test/
+frontend test/
+app testing/
+backend test/
