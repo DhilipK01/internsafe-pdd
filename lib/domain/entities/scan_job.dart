@@ -20,7 +20,7 @@ class ScanJob extends Equatable {
   bool get isPending =>
       status == 'pending_analysis' || status == 'pending';
   bool get isProcessing => status == 'processing';
-  bool get hasResults => status == 'completed';
+  bool get hasResults => status == 'completed' || status == 'invalid_document_type';
   bool get isFailed => status == 'failed';
 
   static dynamic _parseResult(dynamic raw) {

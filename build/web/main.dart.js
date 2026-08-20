@@ -108843,20 +108843,20 @@ break
 case 5:case 1:return A.r(q,r)
 case 2:return A.q(o.at(-1),r)}})
 return A.t($async$Ck,r)},
-C(a){var s,r,q,p,o=null,n=this.w
-if(n==null)n=this.gcv().cA($.adU(),t.mm)
-if(n==null)return A.e2(o,A.cI(A.au(A.b([B.a5i,B.t,A.eB(o,!1,"Upload Resume",new A.aQQ(a))],t.p),B.o,B.aC,B.h),o,o),0,!0,!0,!1,"Report")
-s=A.blJ(n.e)
+C(a){var s,r,q,p,o=null,n="invalid_document_type",m=this.w
+if(m==null)m=this.gcv().cA($.adU(),t.mm)
+if(m==null)return A.e2(o,A.cI(A.au(A.b([B.a5i,B.t,A.eB(o,!1,"Upload Resume",new A.aQQ(a))],t.p),B.o,B.aC,B.h),o,o),0,!0,!0,!1,"Report")
+s=A.blJ(m.e)
 r=A.b([],t.p)
-if(this.x||n.b==="processing")r.push(B.EV)
-q=n.b
-if(q==="failed"){p=n.c
-r.push(new A.o7(p.length!==0?p:"Analysis failed. Try uploading a clearer file.",o))}p=q==="completed"
-if(p&&s!=null)r.push(new A.ZM(s,o))
-if(p&&s==null)r.push(B.EU)
-if((q==="pending_analysis"||q==="pending")&&q!=="processing"&&s==null){q=n.c
+if(this.x||m.b==="processing")r.push(B.EV)
+q=m.b
+if(q==="failed"){p=m.c
+r.push(new A.o7(p.length!==0?p:"Analysis failed. Try uploading a clearer file.",o))}p=q!=="completed"
+if((!p||q===n)&&s!=null)r.push(new A.ZM(s,o))
+if((!p||q===n)&&s==null)r.push(B.EU)
+if((q==="pending_analysis"||q==="pending")&&q!=="processing"&&s==null){q=m.c
 r.push(new A.o7(q.length!==0?q:"Waiting for AI service. Your file was saved.",o))}r.push(B.P)
-q=n.a
+q=m.a
 r.push(A.y("Scan ID: "+q,o,o,o,A.j(a).ok.Q,o,o))
 r.push(B.t)
 r.push(A.aC9(o,o,q,B.k8))
@@ -108864,10 +108864,11 @@ r.push(B.t)
 r.push(A.eB(o,!1,"Back to Scanner",new A.aQR(a)))
 return A.e2(o,A.e7(A.au(r,B.ao,B.i,B.h),o,o,o,B.M),0,!0,!0,!1,"Resume Analysis")}}
 A.aQT.prototype={
-$1(a){var s=this.a,r=s.w=s.gcv().bb(0,$.adU(),t.mm)
+$1(a){var s=this.a,r=s.w=s.gcv().bb(0,$.adU(),t.mm),q=!1
 if(r!=null){r=r.b
-if(r!=="processing")r=(r==="pending_analysis"||r==="pending")&&r!=="completed"
-else r=!0}else r=!1
+if(r!=="processing")if(r==="pending_analysis"||r==="pending")r=!(r==="completed"||r==="invalid_document_type")
+else r=q
+else r=!0}else r=q
 if(r)s.Ck()
 else s.L(new A.aQS())},
 $S:5}
@@ -108882,7 +108883,7 @@ $0(){return this.a.gcv().bb(0,$.b2J(),t.uT).A1(this.b.a)},
 $S:782}
 A.aQN.prototype={
 $1(a){var s=a.b
-return s==="completed"||s==="failed"},
+return s==="completed"||s==="invalid_document_type"||s==="failed"},
 $S:783}
 A.aQO.prototype={
 $0(){return this.a.w=this.b},
