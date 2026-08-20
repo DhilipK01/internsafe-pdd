@@ -66,6 +66,7 @@ CREATE TABLE IF NOT EXISTS uploaded_files (
   upload_status TEXT NOT NULL DEFAULT 'completed'
     CHECK (upload_status IN ('pending', 'uploading', 'completed', 'failed')),
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT,
   deleted_at TEXT
 );
 
