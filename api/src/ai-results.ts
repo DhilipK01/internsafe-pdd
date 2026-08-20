@@ -101,7 +101,7 @@ export async function applyOfferAiResult(
   params: { offerCheckId: string; userId: string },
   result: OfferAiResult,
 ): Promise<void> {
-  const status = result.status ?? (result.result === 'invalid_document_type' ? 'invalid_document_type' : 'completed');
+  const status = 'completed';
   await db.completeOfferAnalysis({
     offerCheckId: params.offerCheckId,
     userId: params.userId,

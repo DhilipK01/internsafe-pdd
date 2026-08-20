@@ -626,7 +626,6 @@ export class DatabaseService {
       recommendation?: string;
     }>;
   }): Promise<void> {
-    const scanStatus = params.resultJson.includes('"invalid_document_type"') ? 'invalid_document_type' : 'completed';
     const statements = [
       this.db
         .prepare(
@@ -647,11 +646,11 @@ export class DatabaseService {
         ),
       this.db
         .prepare(
-          `UPDATE scans SET status = ?, risk_level = ?, result_json = ?,
+          `UPDATE scans SET status = 'completed', risk_level = ?, result_json = ?,
            completed_at = datetime('now'), updated_at = datetime('now')
            WHERE id = ?`,
         )
-        .bind(scanStatus, params.riskLevel, params.resultJson, params.scanId),
+        .bind(params.riskLevel, params.resultJson, params.scanId),
     ];
     for (const f of params.findings) {
       statements.push(
