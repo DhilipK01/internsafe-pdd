@@ -49,7 +49,7 @@ def aggregate_risk(findings: list[dict]) -> tuple[int, RiskLevel, float]:
 
 def classify_resume_document(text: str, file_name: str = "") -> tuple[bool, dict[str, bool], str]:
     """
-    Evaluates whether text is a valid Resume/CV vs non-resume (assignment, meeting notes, business doc, essay).
+    Evaluates whether text is a valid Resume/CV vs non-resume (assignment, meeting notes, business doc, essay, coursework).
     Returns (is_resume, section_checks, reasoning).
     """
     import re
@@ -58,30 +58,32 @@ def classify_resume_document(text: str, file_name: str = "") -> tuple[bool, dict
     
     # Filename non-resume indicators
     fn_non_resume_markers = [
-        "assesment", "assessment", "assignment", "homework", "question", "quiz", "exam", "test",
-        "syllabus", "rubric", "timetable", "admitcard", "hallticket", "coursework", "labmanual",
+        "assesment", "assessment", "assignment", "assign", "homework", "question", "quiz", "exam", "test",
+        "syllabus", "rubric", "timetable", "admitcard", "hallticket", "coursework", "labmanual", "lab",
         "co1", "co2", "co3", "co4", "co5", "unit1", "unit2", "unit3", "unit4", "unit5",
-        "module1", "module2", "module3", "chapter", "lecture", "slide", "ppt"
+        "module1", "module2", "module3", "chapter", "lecture", "slide", "ppt", "report", "paper", "essay",
+        "notes", "task", "submission"
     ]
     fn_hits = [m for m in fn_non_resume_markers if m in fn_lower]
 
-    # Explicit non-resume document indicators (must be specific multi-word terms)
+    # Explicit non-resume document indicators (specific academic & administrative terms)
     non_resume_markers = [
         "statement of marks", "grade card", "mark sheet", "academic transcript", "transcript of records",
         "digilocker", "national academic depository", "result : pass", "result: pass", "sgpa :", "cgpa :",
         "we're hiring", "we are hiring", "now hiring", "job description", "job vacancy",
         "role details", "interview details", "interview date", "interview time", "walk-in interview",
         "minutes of meeting", "mom page", "meeting notes", "meeting date",
-        "homework assignment", "assignment 1", "assignment 2", "submitted by",
-        "question 1", "question 2", "q1.", "q2.", "table of contents",
-        "proposed system flow", "functional specification",
+        "homework assignment", "assignment 1", "assignment 2", "assignment", "submitted by", "submitted to", "guided by",
+        "question 1", "question 2", "q1.", "q2.", "table of contents", "abstract", "introduction", "conclusion",
+        "proposed system flow", "functional specification", "references", "bibliography",
         "invoice", "receipt", "terms of service", "privacy policy", "bill of quantities",
         "question paper", "exam paper", "assessment tool", "assessment", "assesment", "lab manual", "coursework",
-        "max marks", "max. marks", "time allowed", "subject code", "course code",
+        "max marks", "max. marks", "time allowed", "subject code", "course code", "register number", "reg. no", "roll no",
         "programming in java", "programming in c", "programming in python", "programming in c++",
-        "data structures and", "computer networks", "database management",
-        "answer all questions", "answer any five", "multiple choice", "section a", "section b",
-        "course outcome", "program outcome", "blooms taxonomy", "cognitive level"
+        "data structures and", "computer networks", "database management", "operating systems",
+        "answer all questions", "answer any five", "multiple choice", "section a", "section b", "section c",
+        "course outcome", "program outcome", "blooms taxonomy", "cognitive level",
+        "submitted in partial fulfillment", "department of", "academic year", "semester"
     ]
     non_resume_hits = [m for m in non_resume_markers if m in lower]
 
@@ -90,13 +92,13 @@ def classify_resume_document(text: str, file_name: str = "") -> tuple[bool, dict
     has_phone = bool(re.search(r'(\+?\d{1,3}[\s\-]?)?\(?\d{3}\)?[\s\-]?\d{3}[\s\-]?\d{4}', text))
     has_contact = has_email or has_phone
 
-    # Check for core resume section markers
+    # Check for core resume section markers (requiring specific resume context)
     section_checks = {
         "contact_info": has_contact,
-        "education": any(w in lower for w in ["education", "academic qualification", "qualification", "bachelor", "master", "degree", "university", "college", "school", "gpa", "cgpa"]),
-        "experience": any(w in lower for w in ["work experience", "professional experience", "employment history", "work history", "internship", "career history"]),
-        "skills": any(w in lower for w in ["technical skills", "core skills", "skills & competencies", "skillset", "skills", "technologies", "proficiencies", "programming languages"]),
-        "projects": any(w in lower for w in ["projects", "personal projects", "academic projects", "key projects", "featured projects", "college projects"]),
+        "education": any(w in lower for w in ["education", "academic qualification", "qualification"]),
+        "experience": any(w in lower for w in ["work experience", "professional experience", "employment history", "work history", "career history"]),
+        "skills": any(w in lower for w in ["technical skills", "core skills", "skills & competencies", "skillset", "key skills"]),
+        "projects": any(w in lower for w in ["personal projects", "academic projects", "key projects", "featured projects"]),
     }
 
     # Count core resume sections (excluding contact_info)
@@ -113,19 +115,16 @@ def classify_resume_document(text: str, file_name: str = "") -> tuple[bool, dict
     if len(non_resume_hits) >= 1 and not has_cv_title:
         return False, section_checks, f"Document identified as non-resume document type ({', '.join(non_resume_hits[:2])})."
 
-    # 2. If no candidate contact info (email/phone) and no CV title, flag as non-resume document
-    if not has_contact and core_section_count < 3 and not has_cv_title:
-        return False, section_checks, "Document lacks candidate contact information (email or phone number) and valid resume structure."
+    # 2. If no candidate contact info (email or phone) and no explicit CV title, reject immediately
+    if not has_contact and not has_cv_title:
+        return False, section_checks, "Document lacks candidate contact information (email or phone number) required for a resume."
 
-    # 3. If 2 or more core resume sections are present (or explicit CV title), it is a VALID RESUME!
-    if (core_section_count >= 2 or has_cv_title):
+    # 3. If candidate contact info is present AND 2+ core sections are present (or explicit CV title), it is a VALID RESUME!
+    if has_contact and (core_section_count >= 2 or has_cv_title):
         return True, section_checks, "Valid resume structure detected."
 
-    # 4. If core sections are fewer than 2 and no CV title, flag as non-resume
-    if core_section_count < 2 and not has_cv_title:
-        return False, section_checks, "Document lacks core resume sections (Education, Work Experience, Skills, or Projects)."
-
-    return True, section_checks, "Valid resume structure detected."
+    # 4. Fallback: Lack of core resume sections
+    return False, section_checks, "Document lacks core resume sections (Work Experience, Technical Skills, Education, or Projects)."
 
 
 def classify_offer_document(text: str) -> tuple[bool, dict[str, bool], str]:
