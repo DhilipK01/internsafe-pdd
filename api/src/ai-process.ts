@@ -48,8 +48,9 @@ function decodeTextFromParams(fileName: string, fileBase64?: string | null, rawT
   if (!fileBase64) return fileName;
   try {
     const raw = atob(fileBase64);
-    const printable = raw.replace(/[^\x20-\x7E\n\r\t]/g, ' ');
-    return `${fileName} ${printable}`;
+    const pdfTextTokens = Array.from(raw.matchAll(/\(([^()]{3,100})\)/g), (m) => m[1]).join(' ');
+    const printableWords = raw.replace(/[^\x20-\x7E\n\r\t]/g, ' ').replace(/\s+/g, ' ');
+    return `${fileName} ${pdfTextTokens} ${printableWords}`;
   } catch {
     return fileName;
   }
@@ -66,7 +67,7 @@ function generateResumeFallbackAnalysis(params: { fileName: string; fileBase64?:
     'syllabus', 'rubric', 'timetable', 'admitcard', 'hallticket', 'coursework', 'labmanual', 'lab',
     'co1', 'co2', 'co3', 'co4', 'co5', 'unit1', 'unit2', 'unit3', 'unit4', 'unit5',
     'module1', 'module2', 'module3', 'chapter', 'lecture', 'slide', 'ppt', 'report', 'paper', 'essay',
-    'notes', 'task', 'submission'
+    'notes', 'task', 'submission', 'mom', 'meeting'
   ];
   const fnHit = fnNonResumeMarkers.find((m) => fnLower.includes(m));
 
@@ -79,16 +80,18 @@ function generateResumeFallbackAnalysis(params: { fileName: string; fileBase64?:
     'programming in java', 'programming in c', 'programming in python', 'programming in c++',
     'answer all questions', 'answer any five', 'multiple choice', 'section a', 'section b', 'section c',
     'course outcome', 'program outcome', 'blooms taxonomy', 'cognitive level',
-    'submitted in partial fulfillment', 'department of', 'academic year', 'semester'
+    'submitted in partial fulfillment', 'department of', 'academic year', 'semester',
+    'signature of staff', 'signature of student', 'staff signature', 'faculty signature', 'hod signature',
+    'signature_or_parent_block', 'parent signature', 'guardian signature', 'date of submission', 'submission date',
+    'minutes of meeting', 'meeting notes', 'meeting date', 'mom', 'objective', 'agenda'
   ];
   const textHit = nonResumeMarkers.find((m) => lower.includes(m));
 
   const hasEmail = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/.test(text);
   const hasPhone = /(\+?\d{1,3}[\s\-]?)?\(?\d{3}\)?[\s\-]?\d{3}[\s\-]?\d{4}/.test(text);
   const hasContact = hasEmail || hasPhone;
-  const hasCvTitle = /resume|curriculum vitae|\bcv\b/.test(lower);
 
-  if ((fnHit || textHit) && !hasCvTitle) {
+  if (fnHit || textHit) {
     const hit = fnHit || textHit;
     return {
       is_resume: false,
@@ -107,7 +110,7 @@ function generateResumeFallbackAnalysis(params: { fileName: string; fileBase64?:
     };
   }
 
-  if (!hasContact && !hasCvTitle) {
+  if (!hasContact) {
     return {
       is_resume: false,
       status: 'invalid_document_type',

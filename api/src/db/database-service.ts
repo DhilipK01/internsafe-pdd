@@ -632,7 +632,7 @@ export class DatabaseService {
         .prepare(
           `UPDATE resumes SET
             extracted_text = ?, safety_score = ?, risk_level = ?,
-            scan_status = ?, ai_recommendation_json = ?,
+            scan_status = 'completed', ai_recommendation_json = ?,
             extracted_text_confidence = ?, updated_at = datetime('now')
            WHERE id = ? AND user_id = ?`,
         )
@@ -640,7 +640,6 @@ export class DatabaseService {
           params.extractedText,
           params.safetyScore,
           params.riskLevel,
-          scanStatus,
           params.aiRecommendationJson,
           params.ocrConfidence,
           params.resumeId,
