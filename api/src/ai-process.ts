@@ -108,13 +108,26 @@ function generateResumeFallbackAnalysis(params: { fileName: string; fileBase64?:
   ];
   const textHit = nonResumeMarkers.find((m) => lower.includes(m));
 
+  const nonResumeRegexes = [
+    /signature\s*of\s*(the\s*)?(parent|guardian|student|faculty|staff|guide|evaluator|hod|principal|supervisor|teacher|candidate)/i,
+    /(parent|guardian|student|faculty|staff|guide|evaluator|hod|principal|supervisor|teacher)['']?s?\s*signature/i,
+    /date\s*of\s*(submission|evaluation|experiment)/i,
+    /(submission|evaluation|experiment)\s*date/i,
+    /\bsignature\s*:/i,
+    /\b(ex\.?\s*no|experiment\s*no|exercise\s*no)\b/i,
+    /\b(aim|objective|procedure|algorithm|observation|inference)\s*:/i,
+    /\b(evaluated|verified|checked|approved)\s*by\b/i,
+    /\b(assignment|homework|coursework|lab\s*manual|question\s*paper|assessment)\b/i,
+  ];
+  const regexHit = nonResumeRegexes.some((r) => r.test(text));
+
   const hasEmail = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/.test(text);
   const hasPhone = /(\+?\d{1,3}[\s\-]?)?\(?\d{3}\)?[\s\-]?\d{3}[\s\-]?\d{4}/.test(text);
   const hasContact = hasEmail || hasPhone;
   const hasCvTitle = /resume|curriculum vitae|\bcv\b/.test(lower);
 
-  if ((fnHit || textHit) && !hasCvTitle) {
-    const hit = fnHit || textHit;
+  if ((fnHit || textHit || regexHit) && !hasCvTitle) {
+    const hit = fnHit || textHit || 'academic/signature format';
     return {
       is_resume: false,
       status: 'invalid_document_type',
