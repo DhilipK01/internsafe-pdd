@@ -120,8 +120,8 @@ def classify_resume_document(text: str, file_name: str = "") -> tuple[bool, dict
     if not has_contact and not has_cv_title:
         return False, section_checks, "Document lacks candidate contact information (email or phone number) required for a resume."
 
-    # 3. If candidate contact info (or CV title) is present AND at least 1 core section is present, it is a VALID RESUME!
-    if (has_contact or has_cv_title) and (core_section_count >= 1 or has_cv_title):
+    # 3. If candidate contact info (or CV title) is present AND at least 2 core sections are present, it is a VALID RESUME!
+    if (has_contact or has_cv_title) and (core_section_count >= 2 or has_cv_title):
         return True, section_checks, "Valid resume structure detected."
 
     # 4. Fallback: Lack of core resume sections
