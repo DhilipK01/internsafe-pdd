@@ -137,7 +137,7 @@ function generateResumeFallbackAnalysis(params: { fileName: string; fileBase64?:
     };
   }
 
-  if (!hasCvTitle && coreSectionsCount === 0 && lower.trim().length < 100) {
+  if (!hasCvTitle && coreSectionsCount === 0) {
     return {
       is_resume: false,
       status: 'invalid_document_type',
