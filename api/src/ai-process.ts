@@ -94,6 +94,8 @@ function generateResumeFallbackAnalysis(params: { fileName: string; fileBase64?:
   const nonResumeMarkers = [
     'statement of marks', 'grade card', 'mark sheet', 'academic transcript', 'transcript of records',
     'homework assignment', 'assignment 1', 'assignment 2', 'assignment', 'submitted by', 'submitted to', 'guided by',
+    'project report', 'project title', 'project work', 'project assignment', 'project guide', 'project synopsis',
+    'project proposal', 'project documentation', 'capstone project', 'mini project', 'mini-project', 'lab report',
     'question 1', 'question 2', 'q1.', 'q2.', 'table of contents', 'abstract', 'conclusion',
     'question paper', 'exam paper', 'assessment tool', 'assessment', 'assesment', 'lab manual', 'coursework',
     'max marks', 'max. marks', 'time allowed', 'subject code', 'course code', 'register number', 'reg. no', 'roll no',
@@ -118,15 +120,26 @@ function generateResumeFallbackAnalysis(params: { fileName: string; fileBase64?:
     /\b(aim|objective|procedure|algorithm|observation|inference)\s*:/i,
     /\b(evaluated|verified|checked|approved)\s*by\b/i,
     /\b(assignment|homework|coursework|lab\s*manual|question\s*paper|assessment)\b/i,
+    /\b(project\s*report|project\s*title|project\s*work|mini\s*project|capstone\s*project|lab\s*report)\b/i,
   ];
   const regexHit = nonResumeRegexes.some((r) => r.test(text));
 
   const hasEmail = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/.test(text);
-  const hasPhone = /(\+?\d{1,3}[\s\-]?)?\(?\d{3}\)?[\s\-]?\d{3}[\s\-]?\d{4}/.test(text);
+  // Bare 10-digit runs are excluded unless they look like a real phone number
+  // (country code, separators, or a valid Indian mobile prefix) — otherwise a
+  // register/roll number on an assignment cover page reads as a phone number.
+  const hasPhone =
+    /\+\d{1,3}[\s\-]?\(?\d{3}\)?[\s\-]?\d{3}[\s\-]?\d{4}/.test(text) ||
+    /\(?\d{3}\)?[\s\-]\d{3}[\s\-]\d{4}/.test(text) ||
+    /\b[6-9]\d{9}\b/.test(text);
   const hasContact = hasEmail || hasPhone;
   const hasCvTitle = /resume|curriculum vitae|\bcv\b/.test(lower);
 
-  if ((fnHit || textHit || regexHit) && !hasCvTitle) {
+  // Explicit non-resume markers always reject, even if the document also contains the word
+  // "resume" or "CV" somewhere (e.g. used as a verb, or as an abbreviation for something else
+  // like "Control Volume"). hasCvTitle only relaxes the contact-info/section-count checks
+  // below, never this one — otherwise a single incidental match disables every other check.
+  if (fnHit || textHit || regexHit) {
     const hit = fnHit || textHit || 'academic/signature format';
     return {
       is_resume: false,
@@ -172,7 +185,9 @@ function generateResumeFallbackAnalysis(params: { fileName: string; fileBase64?:
     };
   }
 
-  if (!hasCvTitle && coreSectionsCount < 2) {
+  // Require 3 of 4 core sections (not 2) — two loosely-matched keywords in passing
+  // prose is common in assignments/reports and isn't enough to call it a resume.
+  if (!hasCvTitle && coreSectionsCount < 3) {
     return {
       is_resume: false,
       status: 'invalid_document_type',

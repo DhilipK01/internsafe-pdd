@@ -1718,10 +1718,10 @@ export default {
       if (msg.includes('GOOGLE_USER_UPSERT_FAILED')) {
         return error('Could not create account for this Google user', 409);
       }
-      if (msg.includes('D1_ERROR') || msg.includes('SQLITE')) {
-        return error('Database error — run npm run db:migrate on the Worker', 503);
+      if (msg.includes('D1_ERROR') || msg.includes('SQLITE') || msg.includes('no such column') || msg.includes('no such table')) {
+        return error(`Database error: ${msg}`, 503);
       }
-      return error('Internal server error', 500);
+      return error(`Internal error: ${msg}`, 500);
     }
   },
 };

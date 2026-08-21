@@ -73,6 +73,8 @@ def classify_resume_document(text: str, file_name: str = "") -> tuple[bool, dict
         "role details", "interview details", "interview date", "interview time", "walk-in interview",
         "minutes of meeting", "mom page", "meeting notes", "meeting date",
         "homework assignment", "assignment 1", "assignment 2", "assignment", "submitted by", "submitted to", "guided by",
+        "project report", "project title", "project work", "project assignment", "project guide", "project synopsis",
+        "project proposal", "project documentation", "capstone project", "mini project", "mini-project", "lab report",
         "question 1", "question 2", "q1.", "q2.", "table of contents", "abstract", "conclusion",
         "proposed system flow", "functional specification", "bibliography",
         "invoice", "receipt", "terms of service", "privacy policy", "bill of quantities",
@@ -83,14 +85,42 @@ def classify_resume_document(text: str, file_name: str = "") -> tuple[bool, dict
         "answer all questions", "answer any five", "multiple choice", "section a", "section b", "section c",
         "course outcome", "program outcome", "blooms taxonomy", "cognitive level",
         "submitted in partial fulfillment", "department of", "academic year",
-        "signature of staff", "signature of student", "staff signature", "faculty signature", "hod signature",
-        "parent signature", "guardian signature", "date of submission", "submission date", "evaluated by", "verified by"
+        "signature of staff", "signature of the staff", "signature of student", "signature of the student",
+        "signature of faculty", "signature of the faculty", "signature of guide", "signature of the guide",
+        "signature of evaluator", "signature of the evaluator", "signature of hod", "signature of the hod",
+        "signature of principal", "signature of the principal", "signature of supervisor", "signature of the supervisor",
+        "signature of teacher", "signature of the teacher", "signature of candidate", "signature of the candidate",
+        "staff signature", "student signature", "faculty signature", "hod signature", "guide signature", "evaluator signature",
+        "supervisor signature", "principal signature", "staff sig", "faculty sig", "student sig", "hod sig", "guide sig",
+        "date of submission", "submission date", "date of evaluation", "evaluation date", "evaluated by", "verified by", "checked by", "approved by",
+        "parent signature", "guardian signature"
+    ]
+    non_resume_regexes = [
+        r"signature\s*of\s*(the\s*)?(parent|guardian|student|faculty|staff|guide|evaluator|hod|principal|supervisor|teacher|candidate)",
+        r"(parent|guardian|student|faculty|staff|guide|evaluator|hod|principal|supervisor|teacher)['']?s?\s*signature",
+        r"date\s*of\s*(submission|evaluation|experiment)",
+        r"(submission|evaluation|experiment)\s*date",
+        r"\bsignature\s*:",
+        r"\b(ex\.?\s*no|experiment\s*no|exercise\s*no)\b",
+        r"\b(aim|objective|procedure|algorithm|observation|inference)\s*:",
+        r"\b(evaluated|verified|checked|approved)\s*by\b",
+        r"\b(assignment|homework|coursework|lab\s*manual|question\s*paper|assessment)\b",
+        r"\b(project\s*report|project\s*title|project\s*work|mini\s*project|capstone\s*project|lab\s*report)\b",
     ]
     non_resume_hits = [m for m in non_resume_markers if m in lower]
+    regex_hits = [r for r in non_resume_regexes if re.search(r, text, re.IGNORECASE)]
+    has_non_resume_match = len(non_resume_hits) >= 1 or len(regex_hits) >= 1
 
-    # Strict contact info check: Requires actual email or phone number format
+    # Strict contact info check: Requires actual email or phone number format.
+    # Bare 10-digit runs are excluded unless they look like a real phone number
+    # (country code, separators, or a valid Indian mobile prefix) — otherwise a
+    # register/roll number on an assignment cover page reads as a phone number.
     has_email = bool(re.search(r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}', text))
-    has_phone = bool(re.search(r'(\+?\d{1,3}[\s\-]?)?\(?\d{3}\)?[\s\-]?\d{3}[\s\-]?\d{4}', text))
+    has_phone = bool(
+        re.search(r'\+\d{1,3}[\s\-]?\(?\d{3}\)?[\s\-]?\d{3}[\s\-]?\d{4}', text)
+        or re.search(r'\(?\d{3}\)?[\s\-]\d{3}[\s\-]\d{4}', text)
+        or re.search(r'(?<!\d)[6-9]\d{9}(?!\d)', text)
+    )
     has_contact = has_email or has_phone
 
     # Check for core resume section markers (requiring specific resume context)
@@ -108,20 +138,27 @@ def classify_resume_document(text: str, file_name: str = "") -> tuple[bool, dict
     has_cv_title = any(w in lower for w in ["resume", "curriculum vitae", "curriculum-vitae"])
 
     # Classification decision:
-    # 0. Check filename markers
-    if fn_hits and not has_cv_title:
+    # 0. Filename markers always reject — a stray "resume"/"CV" mention elsewhere in an
+    # assignment's text must not override an explicit non-resume filename.
+    if fn_hits:
         return False, section_checks, f"File name indicates an academic or non-resume document type ({fn_hits[0]})."
 
-    # 1. If explicit non-resume markers hit (and no explicit CV title), flag as non-resume document
-    if len(non_resume_hits) >= 1 and not has_cv_title:
-        return False, section_checks, f"Document identified as non-resume document type ({', '.join(non_resume_hits[:2])})."
+    # 1. Explicit non-resume markers always reject, even if the document also contains the
+    # word "resume" or "CV" somewhere (e.g. used as a verb, or as an abbreviation for something
+    # else like "Control Volume"). has_cv_title only relaxes checks 2/3 below, never this one —
+    # otherwise a single incidental match disables every other safety check.
+    if has_non_resume_match:
+        hit_desc = non_resume_hits[0] if non_resume_hits else "academic/signature format"
+        return False, section_checks, f"Document identified as non-resume document type ({hit_desc})."
 
     # 2. If no candidate contact info (email or phone), reject immediately
     if not has_contact and not has_cv_title:
         return False, section_checks, "Document lacks candidate contact information (email or phone number) required for a resume."
 
-    # 3. If candidate contact info (or CV title) is present AND at least 2 core sections are present, it is a VALID RESUME!
-    if (has_contact or has_cv_title) and (core_section_count >= 2 or has_cv_title):
+    # 3. If candidate contact info (or CV title) is present AND at least 3 of the 4 core
+    # resume sections are present, it is a VALID RESUME. Requiring 3 (not 2) avoids accepting
+    # academic documents that happen to mention two resume-adjacent words in passing.
+    if (has_contact or has_cv_title) and (core_section_count >= 3 or has_cv_title):
         return True, section_checks, "Valid resume structure detected."
 
     # 4. Fallback: Lack of core resume sections
