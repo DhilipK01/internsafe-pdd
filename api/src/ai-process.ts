@@ -48,9 +48,19 @@ function decodeTextFromParams(fileName: string, fileBase64?: string | null, rawT
   if (!fileBase64) return fileName;
   try {
     const raw = atob(fileBase64);
-    const pdfTextTokens = Array.from(raw.matchAll(/\(([^()]{3,100})\)/g), (m) => m[1]).join(' ');
-    const printableWords = raw.replace(/[^\x20-\x7E\n\r\t]/g, ' ').replace(/\s+/g, ' ');
-    return `${fileName} ${pdfTextTokens} ${printableWords}`;
+    const pdfTextTokens = Array.from(raw.matchAll(/\(([^()]{2,120})\)/g), (m) => m[1])
+      .filter((t) => !t.startsWith('http') && !t.includes('Font') && !t.includes('Adobe'))
+      .join(' ');
+
+    if (pdfTextTokens.trim().length > 20) {
+      return `${fileName} ${pdfTextTokens}`;
+    }
+
+    const cleanWords = raw
+      .replace(/\/[A-Za-z0-9_]+/g, ' ')
+      .replace(/[^\x20-\x7E\n\r\t]/g, ' ')
+      .replace(/\s+/g, ' ');
+    return `${fileName} ${cleanWords}`;
   } catch {
     return fileName;
   }
