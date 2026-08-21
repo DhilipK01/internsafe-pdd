@@ -293,6 +293,28 @@ function generateOfferFallbackAnalysis(params: { fileName?: string; fileBase64?:
   };
 }
 
+/**
+ * A resume result is only trustworthy if it carries an explicit document-type verdict.
+ * Legacy AI builds predating document classification omit these fields, and the `?? true` /
+ * `?? 'completed'` defaults downstream would turn that silence into a passing scan — so any
+ * upload, assignments included, would report as a completed resume. Treat a verdict-less
+ * response as unusable and classify locally instead.
+ */
+function hasResumeVerdict(result: ResumeAiResult): boolean {
+  // `is_resume` specifically — a legacy build still reports status "completed" while
+  // omitting the document-type verdict, so status alone proves nothing.
+  return typeof result.is_resume === 'boolean';
+}
+
+/** Offer equivalent of {@link hasResumeVerdict}. */
+function hasOfferVerdict(result: OfferAiResult): boolean {
+  return (
+    typeof result.is_offer === 'boolean' ||
+    typeof result.status === 'string' ||
+    typeof result.result === 'string'
+  );
+}
+
 export async function processResumeWithAi(
   env: AiServiceEnv,
   db: DatabaseService,
@@ -309,7 +331,7 @@ export async function processResumeWithAi(
 
   if (aiConfigured(env)) {
     const sync = await runResumeSync(env, params);
-    if (sync.ok && sync.result) {
+    if (sync.ok && sync.result && hasResumeVerdict(sync.result as ResumeAiResult)) {
       result = sync.result as ResumeAiResult;
     } else {
       result = generateResumeFallbackAnalysis(params);
@@ -348,7 +370,7 @@ export async function processOfferWithAi(
 
   if (aiConfigured(env)) {
     const sync = await runOfferSync(env, params);
-    if (sync.ok && sync.result) {
+    if (sync.ok && sync.result && hasOfferVerdict(sync.result as OfferAiResult)) {
       result = sync.result as OfferAiResult;
     } else {
       result = generateOfferFallbackAnalysis(params);
