@@ -73,7 +73,7 @@ function generateResumeFallbackAnalysis(params: { fileName: string; fileBase64?:
   const nonResumeMarkers = [
     'statement of marks', 'grade card', 'mark sheet', 'academic transcript', 'transcript of records',
     'homework assignment', 'assignment 1', 'assignment 2', 'assignment', 'submitted by', 'submitted to', 'guided by',
-    'question 1', 'question 2', 'q1.', 'q2.', 'table of contents', 'abstract', 'introduction', 'conclusion',
+    'question 1', 'question 2', 'q1.', 'q2.', 'table of contents', 'abstract', 'conclusion',
     'question paper', 'exam paper', 'assessment tool', 'assessment', 'assesment', 'lab manual', 'coursework',
     'max marks', 'max. marks', 'time allowed', 'subject code', 'course code', 'register number', 'reg. no', 'roll no',
     'programming in java', 'programming in c', 'programming in python', 'programming in c++',
