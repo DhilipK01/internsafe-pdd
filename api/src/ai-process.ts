@@ -63,11 +63,10 @@ function generateResumeFallbackAnalysis(params: { fileName: string; fileBase64?:
   const fnLower = fileName.toLowerCase();
 
   const fnNonResumeMarkers = [
-    'assesment', 'assessment', 'assignment', 'assign', 'homework', 'question', 'quiz', 'exam', 'test',
-    'syllabus', 'rubric', 'timetable', 'admitcard', 'hallticket', 'coursework', 'labmanual', 'lab',
+    'assesment', 'assessment', 'assignment', 'homework', 'question', 'quiz', 'exam',
+    'syllabus', 'rubric', 'timetable', 'admitcard', 'hallticket', 'coursework', 'labmanual',
     'co1', 'co2', 'co3', 'co4', 'co5', 'unit1', 'unit2', 'unit3', 'unit4', 'unit5',
-    'module1', 'module2', 'module3', 'chapter', 'lecture', 'slide', 'ppt', 'report', 'paper', 'essay',
-    'notes', 'task', 'submission', 'mom', 'meeting'
+    'module1', 'module2', 'module3'
   ];
   const fnHit = fnNonResumeMarkers.find((m) => fnLower.includes(m));
 
@@ -80,18 +79,19 @@ function generateResumeFallbackAnalysis(params: { fileName: string; fileBase64?:
     'programming in java', 'programming in c', 'programming in python', 'programming in c++',
     'answer all questions', 'answer any five', 'multiple choice', 'section a', 'section b', 'section c',
     'course outcome', 'program outcome', 'blooms taxonomy', 'cognitive level',
-    'submitted in partial fulfillment', 'department of', 'academic year', 'semester',
+    'submitted in partial fulfillment', 'department of', 'academic year',
     'signature of staff', 'signature of student', 'staff signature', 'faculty signature', 'hod signature',
     'signature_or_parent_block', 'parent signature', 'guardian signature', 'date of submission', 'submission date',
-    'minutes of meeting', 'meeting notes', 'meeting date', 'mom', 'objective', 'agenda'
+    'minutes of meeting', 'meeting notes', 'meeting date'
   ];
   const textHit = nonResumeMarkers.find((m) => lower.includes(m));
 
   const hasEmail = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/.test(text);
   const hasPhone = /(\+?\d{1,3}[\s\-]?)?\(?\d{3}\)?[\s\-]?\d{3}[\s\-]?\d{4}/.test(text);
   const hasContact = hasEmail || hasPhone;
+  const hasCvTitle = /resume|curriculum vitae|\bcv\b/.test(lower);
 
-  if (fnHit || textHit) {
+  if ((fnHit || textHit) && !hasCvTitle) {
     const hit = fnHit || textHit;
     return {
       is_resume: false,
@@ -110,7 +110,16 @@ function generateResumeFallbackAnalysis(params: { fileName: string; fileBase64?:
     };
   }
 
-  if (!hasContact) {
+  const sectionChecks = {
+    contact_info: hasContact,
+    education: /education|academic|qualification|degree|bachelor|master|university|college|school|gpa|cgpa|b\.e|b\.tech|m\.tech|b\.sc|m\.sc|bca|mca/.test(lower),
+    experience: /experience|internship|internships|employment|work|history|career|position|role/.test(lower),
+    skills: /skills|skill|technologies|proficiencies|languages|tools|competencies|expertise|stack/.test(lower),
+    projects: /projects|project|works|portfolio|accomplishments/.test(lower),
+  };
+  const coreSectionsCount = [sectionChecks.education, sectionChecks.experience, sectionChecks.skills, sectionChecks.projects].filter(Boolean).length;
+
+  if (!hasContact && !hasCvTitle) {
     return {
       is_resume: false,
       status: 'invalid_document_type',
@@ -118,11 +127,29 @@ function generateResumeFallbackAnalysis(params: { fileName: string; fileBase64?:
       safety_score: null,
       quality_score: 0,
       risk_level: 'unknown',
-      section_checks: { contact_info: false, education: false, experience: false, skills: false, projects: false },
+      section_checks: sectionChecks,
       findings: [],
       ai_recommendation: {
         explanation: 'Document lacks candidate contact information required for a resume.',
         action_items: ['Ensure your resume includes a valid email address or phone number.'],
+      },
+      ocr: { confidence: 0.95 },
+    };
+  }
+
+  if (!hasCvTitle && coreSectionsCount === 0 && lower.trim().length < 100) {
+    return {
+      is_resume: false,
+      status: 'invalid_document_type',
+      message: 'Document lacks core resume sections (Work Experience, Technical Skills, Education, or Projects).',
+      safety_score: null,
+      quality_score: 0,
+      risk_level: 'unknown',
+      section_checks: sectionChecks,
+      findings: [],
+      ai_recommendation: {
+        explanation: 'Document lacks core resume sections.',
+        action_items: ['Upload a valid resume containing standard sections like Experience, Education, or Skills.'],
       },
       ocr: { confidence: 0.95 },
     };
@@ -153,13 +180,7 @@ function generateResumeFallbackAnalysis(params: { fileName: string; fileBase64?:
     safety_score: 95,
     quality_score: 85,
     risk_level: 'low',
-    section_checks: {
-      contact_info: hasContact,
-      education: /education|qualification|degree|university|college/.test(lower),
-      experience: /experience|employment|work|internship/.test(lower),
-      skills: /skills|technologies|proficiencies/.test(lower),
-      projects: /projects|academic projects/.test(lower),
-    },
+    section_checks: sectionChecks,
     findings,
     ai_recommendation: {
       explanation: 'Automated privacy scan detected standard resume contact details with no sensitive ID leaks.',
