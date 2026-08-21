@@ -48,19 +48,30 @@ function decodeTextFromParams(fileName: string, fileBase64?: string | null, rawT
   if (!fileBase64) return fileName;
   try {
     const raw = atob(fileBase64);
-    const pdfTextTokens = Array.from(raw.matchAll(/\(([^()]{2,120})\)/g), (m) => m[1])
+
+    let decompressedText = '';
+    const streamMatches = raw.matchAll(/stream\r?\n([\s\S]*?)\r?\nendstream/g);
+    for (const match of streamMatches) {
+      try {
+        const streamBytes = Uint8Array.from(match[1], (c) => c.charCodeAt(0));
+        const unzipped = fflate.decompressSync(streamBytes);
+        const str = new TextDecoder('utf-8', { fatal: false }).decode(unzipped);
+        decompressedText += ' ' + str;
+      } catch {}
+    }
+
+    const fullRawText = raw + ' ' + decompressedText;
+
+    const pdfTextTokens = Array.from(fullRawText.matchAll(/[\(\[]([^()\[\]]{2,150})[\)\]]/g), (m) => m[1])
       .filter((t) => !t.startsWith('http') && !t.includes('Font') && !t.includes('Adobe'))
       .join(' ');
 
-    if (pdfTextTokens.trim().length > 20) {
-      return `${fileName} ${pdfTextTokens}`;
-    }
-
-    const cleanWords = raw
+    const cleanWords = fullRawText
       .replace(/\/[A-Za-z0-9_]+/g, ' ')
       .replace(/[^\x20-\x7E\n\r\t]/g, ' ')
       .replace(/\s+/g, ' ');
-    return `${fileName} ${cleanWords}`;
+
+    return `${fileName} ${pdfTextTokens} ${cleanWords}`;
   } catch {
     return fileName;
   }
@@ -92,6 +103,7 @@ function generateResumeFallbackAnalysis(params: { fileName: string; fileBase64?:
     'submitted in partial fulfillment', 'department of', 'academic year',
     'signature of staff', 'signature of student', 'staff signature', 'faculty signature', 'hod signature',
     'signature_or_parent_block', 'parent signature', 'guardian signature', 'date of submission', 'submission date',
+    'evaluated by', 'verified by', 'checked by', 'ex. no', 'ex no', 'experiment', 'aim:', 'procedure:',
     'minutes of meeting', 'meeting notes', 'meeting date'
   ];
   const textHit = nonResumeMarkers.find((m) => lower.includes(m));
