@@ -122,10 +122,10 @@ function generateResumeFallbackAnalysis(params: { fileName: string; fileBase64?:
 
   const sectionChecks = {
     contact_info: hasContact,
-    education: /education|academic|qualification|degree|bachelor|master|university|college|school|gpa|cgpa|b\.e|b\.tech|m\.tech|b\.sc|m\.sc|bca|mca/.test(lower),
-    experience: /experience|internship|internships|employment|work|history|career|position|role/.test(lower),
-    skills: /skills|skill|technologies|proficiencies|languages|tools|competencies|expertise|stack/.test(lower),
-    projects: /projects|project|works|portfolio|accomplishments/.test(lower),
+    education: /education|academic|qualification|degree|bachelor|master|university|college|gpa|cgpa|b\.e|b\.tech|m\.tech|b\.sc|m\.sc|bca|mca/.test(lower),
+    experience: /experience|internship|internships|employment|work experience|professional experience|work history|career history/.test(lower),
+    skills: /skills|skill|technologies|proficiencies|technical skills|competencies|expertise/.test(lower),
+    projects: /projects|project|personal projects|key projects|portfolio|accomplishments/.test(lower),
   };
   const coreSectionsCount = [sectionChecks.education, sectionChecks.experience, sectionChecks.skills, sectionChecks.projects].filter(Boolean).length;
 

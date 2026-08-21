@@ -96,10 +96,10 @@ def classify_resume_document(text: str, file_name: str = "") -> tuple[bool, dict
     # Check for core resume section markers (requiring specific resume context)
     section_checks = {
         "contact_info": has_contact,
-        "education": any(w in lower for w in ["education", "academic", "qualification", "degree", "bachelor", "master", "university", "college", "school", "gpa", "cgpa", "b.e", "b.tech", "m.tech", "b.sc", "m.sc", "bca", "mca"]),
-        "experience": any(w in lower for w in ["experience", "internship", "internships", "employment", "work", "history", "career", "position", "role"]),
-        "skills": any(w in lower for w in ["skills", "skill", "technologies", "proficiencies", "languages", "tools", "competencies", "expertise", "stack"]),
-        "projects": any(w in lower for w in ["projects", "project", "works", "portfolio", "accomplishments"]),
+        "education": any(w in lower for w in ["education", "academic", "qualification", "degree", "bachelor", "master", "university", "college", "gpa", "cgpa", "b.e", "b.tech", "m.tech", "b.sc", "m.sc", "bca", "mca"]),
+        "experience": any(w in lower for w in ["experience", "internship", "internships", "employment", "work experience", "professional experience", "work history", "career history"]),
+        "skills": any(w in lower for w in ["skills", "skill", "technologies", "proficiencies", "technical skills", "competencies", "expertise"]),
+        "projects": any(w in lower for w in ["projects", "project", "personal projects", "key projects", "portfolio", "accomplishments"]),
     }
 
     # Count core resume sections (excluding contact_info)
